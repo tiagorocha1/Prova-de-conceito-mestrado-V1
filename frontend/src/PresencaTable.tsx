@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 
 interface Presenca {
-  id: string; // Identificador único do registro (por exemplo, _id do MongoDB convertido para string)
+  id: string; // _id do MongoDB convertido para string
   uuid: string;
   data: string;
   hora: string;
   foto_captura: string;
   tags: string[];
+  inicio: number;              // Timestamp de início (em milissegundos)
+  fim: number;                 // Timestamp de fim (em milissegundos)
+  tempo_processamento: number; // Tempo de processamento (em milissegundos)
 }
 
 const PresencaTable: React.FC = () => {
@@ -72,6 +75,9 @@ const PresencaTable: React.FC = () => {
                 <th style={{ border: "1px solid #ccc", padding: "8px" }}>Hora</th>
                 <th style={{ border: "1px solid #ccc", padding: "8px" }}>Foto Captura</th>
                 <th style={{ border: "1px solid #ccc", padding: "8px" }}>Tags</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Início</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Fim</th>
+                <th style={{ border: "1px solid #ccc", padding: "8px" }}>Tempo Processamento (ms)</th>
                 <th style={{ border: "1px solid #ccc", padding: "8px" }}>Ação</th>
               </tr>
             </thead>
@@ -92,6 +98,9 @@ const PresencaTable: React.FC = () => {
                   <td style={{ border: "1px solid #ccc", padding: "8px" }}>
                     {p.tags && p.tags.length > 0 ? p.tags.join(", ") : "Nenhuma"}
                   </td>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>{p.inicio}</td>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>{p.fim}</td>
+                  <td style={{ border: "1px solid #ccc", padding: "8px" }}>{p.tempo_processamento}</td>
                   <td style={{ border: "1px solid #ccc", padding: "8px", textAlign: "center" }}>
                     <button
                       onClick={() => deletePresenca(p.id)}

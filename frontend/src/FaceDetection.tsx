@@ -137,8 +137,9 @@ function FaceDetectionComponent() {
         rectHeight
       );
       const base64Image = tempCanvas.toDataURL('image/png');
-      return { image: base64Image };
-    }).filter((face): face is { image: string } => face !== null);
+
+      return { image: base64Image,  timestamp: now };
+    }).filter((face): face is {image: string; timestamp: number } => face !== null);
 
     // Envia as faces de forma assíncrona (o retorno não é usado)
     fetch('http://localhost:8000/recognize-batch', {

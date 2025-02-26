@@ -16,6 +16,8 @@ import shutil
 from typing import List
 from pydantic import BaseModel
 import asyncio
+from datetime import datetime
+
 
 # ----------------------------
 # Global Setup and Model Loading
@@ -37,7 +39,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 model_facenet512 = DeepFace.build_model("Facenet512")
 print("DeepFace model loaded.")
 
-quantidade_fotos_relacionadas = 20
+quantidade_fotos_relacionadas = 1000
 
 # ----------------------------
 # FastAPI App and Middleware
@@ -66,6 +68,7 @@ class TagPayload(BaseModel):
 
 class FaceItem(BaseModel):
     image: str  # Base64 da imagem
+    timestamp: int  # Timestamp enviado pelo frontend (em milissegundos)
 
 class BatchImagePayload(BaseModel):
     images: List[FaceItem]
@@ -493,12 +496,21 @@ async def recognize_faces(payload: BatchImagePayload):
             primary_photo = None
             if pessoa.get("image_paths"):
                 primary_photo = f"http://localhost:8000/static/{os.path.relpath(pessoa['image_paths'][0], IMAGES_DIR).replace(os.path.sep, '/')}"
-            
+
             # Registra a presença
-            from datetime import datetime
+            # Recebe o timestamp enviado para o início do processamento
+            time_inicio = face_item.timestamp
+            # Obtém o timestamp atual (fim do processamento) em milissegundos
+            time_fim = int(datetime.now().timestamp() * 1000)
+            # Calcula a diferença
+            tempo_processamento = time_fim - time_inicio
+            
             presence_doc = {
                 "data": datetime.now().strftime("%Y-%m-%d"),
                 "hora": datetime.now().strftime("%H:%M:%S"),
+                "inicio": time_inicio,
+                "fim": time_fim,
+                "tempo_processamento": tempo_processamento,
                 "pessoa": matched_uuid,
                 "foto_captura": captured_photo_path,
                 "tags": pessoa.get("tags", [])
@@ -516,8 +528,6 @@ async def recognize_faces(payload: BatchImagePayload):
             results.append({"error": str(e)})
 
     return JSONResponse({"faces": results}, status_code=200)
-
-
 
 @app.delete("/pessoas/{uuid}/photos")
 async def remove_photo(uuid: str, payload: dict):
@@ -589,7 +599,10 @@ async def list_presencas(date: str = None, page: int = 1, limit: int = 10):
                 "data": p.get("data"),
                 "hora": p.get("hora"),
                 "foto_captura": foto_url,
-                "tags": p.get("tags", [])
+                "tags": p.get("tags", []),
+                "inicio": p.get("inicio"),
+                "fim": p.get("fim"),
+                "tempo_processamento": p.get("tempo_processamento")
             })
         total = presencas.count_documents({"data": date})
         return JSONResponse({"presencas": results, "total": total, "date": date}, status_code=200)
