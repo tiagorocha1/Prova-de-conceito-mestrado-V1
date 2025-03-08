@@ -84,6 +84,8 @@ Este projeto é uma aplicação de reconhecimento facial que utiliza webcam para
 3. Instale as dependências:
    ```
    npm install
+   npm install react-router-dom
+
    ```
 5. Inicie o servidor de desenvolvimento:
    ```
